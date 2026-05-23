@@ -1,0 +1,448 @@
+% ============================================================
+% references.bib — Hedge Fund Time Series Forecasting
+% ============================================================
+
+% ---- Forecasting Competitions ----------------------------
+
+@article{makridakis2020m4,
+  author    = {Makridakis, Spyros and Spiliotis, Evangelos and Assimakopoulos, Vassilios},
+  title     = {The {M4} Competition: 100{,}000 time series and 61 forecasting methods},
+  journal   = {International Journal of Forecasting},
+  volume    = {36},
+  number    = {1},
+  pages     = {54--74},
+  year      = {2020},
+  doi       = {10.1016/j.ijforecast.2019.04.014}
+}
+
+@article{makridakis2022m5,
+  author    = {Makridakis, Spyros and Spiliotis, Evangelos and Assimakopoulos, Vassilios},
+  title     = {M5 accuracy competition: Results, findings, and conclusions},
+  journal   = {International Journal of Forecasting},
+  volume    = {38},
+  number    = {4},
+  pages     = {1346--1364},
+  year      = {2022},
+  doi       = {10.1016/j.ijforecast.2021.11.013}
+}
+
+@article{makridakis2022m5uncertainty,
+  author    = {Makridakis, Spyros and Spiliotis, Evangelos and Assimakopoulos, Vassilios
+               and others},
+  title     = {The {M5} Uncertainty Competition: Results, findings and conclusions},
+  journal   = {International Journal of Forecasting},
+  volume    = {38},
+  number    = {4},
+  pages     = {1365--1385},
+  year      = {2022},
+  doi       = {10.1016/j.ijforecast.2021.10.009}
+}
+
+% ---- Kaggle Competition -----------------------------------
+
+@misc{adatacompany2026,
+  author    = {{A Data Company}},
+  title     = {Hedge Fund --- Time Series Forecasting},
+  howpublished = {\url{https://kaggle.com/competitions/ts-forecasting}},
+  year      = {2026},
+  note      = {Kaggle competition}
+}
+
+% ---- Winning Kaggle Solutions ----------------------------
+
+@misc{m5first2020,
+  author    = {Vertolli, Dmitry},
+  title     = {1st Place Solution --- {M5} Forecasting Accuracy},
+  howpublished = {Kaggle Discussion,
+                  \url{https://www.kaggle.com/competitions/m5-forecasting-accuracy/discussion}},
+  year      = {2020},
+  note      = {LightGBM with Tweedie objective; recursive and non-recursive ensemble;
+               time-based cross-validation mimicking train/test split}
+}
+
+@misc{kaggleguide,
+  author    = {Lenshik},
+  title     = {A Beginner's Guide to Winning {Kaggle} Competitions},
+  howpublished = {Kaggle Discussion},
+  year      = {2024},
+  note      = {Strategies for tabular forecasting competitions: gradient boosting,
+               causal feature engineering, CV over public leaderboard, ensemble diversity}
+}
+
+% ---- Gradient Boosting -----------------------------------
+
+@inproceedings{chen2016xgboost,
+  author    = {Chen, Tianqi and Guestrin, Carlos},
+  title     = {{XGBoost}: A Scalable Tree Boosting System},
+  booktitle = {Proceedings of the 22nd ACM SIGKDD International Conference on
+               Knowledge Discovery and Data Mining},
+  pages     = {785--794},
+  year      = {2016},
+  doi       = {10.1145/2939672.2939785}
+}
+
+@inproceedings{ke2017lightgbm,
+  author    = {Ke, Guolin and Meng, Qi and Finley, Thomas and Wang, Taifeng and
+               Chen, Wei and Ma, Weidong and Ye, Qiwei and Liu, Tie-Yan},
+  title     = {{LightGBM}: A Highly Efficient Gradient Boosting Decision Tree},
+  booktitle = {Advances in Neural Information Processing Systems},
+  volume    = {30},
+  year      = {2017}
+}
+
+% ---- Surveys & Reviews -----------------------------------
+
+@article{wen2025deepsurvey,
+  author    = {Wen, Qingsong and Zhou, Tian and Zhang, Chaoli and others},
+  title     = {Deep learning for time series forecasting: a survey},
+  journal   = {Artificial Intelligence Review},
+  year      = {2025},
+  note      = {Zhejiang University of Technology and RMIT University}
+}
+
+@article{huang2024dlreview,
+  author    = {Huang, Yuxiao and others},
+  title     = {Deep Learning Models for Time Series Forecasting: A Review},
+  journal   = {IEEE Access},
+  year      = {2024},
+  doi       = {10.1109/ACCESS.2024.3422528}
+}
+
+@article{kim2025survey,
+  author    = {Kim, Donghao and others},
+  title     = {A comprehensive survey of deep learning for time series forecasting:
+               architectural diversity and open challenges},
+  year      = {2025},
+  note      = {Seoul National University and Chung-Ang University}
+}
+
+@article{tavenard2020tslearn,
+  author    = {Tavenard, Romain and others},
+  title     = {Tslearn, A Machine Learning Toolkit for Time Series Data},
+  journal   = {Journal of Machine Learning Research},
+  volume    = {21},
+  number    = {118},
+  pages     = {1--6},
+  year      = {2020}
+}
+
+@misc{jadon2024lossfunctions,
+  author    = {Jadon, Aryan and Patil, Avinash and Jadon, Shruti},
+  title     = {A Comprehensive Survey of Regression Based Loss Functions for
+               Time Series Forecasting},
+  howpublished = {arXiv preprint},
+  year      = {2024},
+  note      = {San José State University and Juniper Networks}
+}
+
+% ---- Global vs Local Models ------------------------------
+
+@article{montero2021globalmodels,
+  author    = {Montero-Manso, Pablo and Hyndman, Rob J.},
+  title     = {Principles and Algorithms for Forecasting Groups of Time Series:
+               Locality and Globality},
+  journal   = {International Journal of Forecasting},
+  year      = {2021},
+  note      = {Monash University; simulation study with heterogeneous DGPs}
+}
+
+% ---- Forecasting Competitions ----------------------------
+
+@article{bojer2021kaggle,
+  author    = {Bojer, Casper Solheim and Meldgaard, Jens-Peter},
+  title     = {Kaggle forecasting competitions: An overlooked learning opportunity},
+  journal   = {International Journal of Forecasting},
+  volume    = {37},
+  number    = {2},
+  pages     = {587--603},
+  year      = {2021},
+  doi       = {10.1016/j.ijforecast.2020.07.007}
+}
+
+@misc{bojer2020learnings,
+  author    = {Bojer, Casper Solheim and Meldgaard, Jens-Peter},
+  title     = {Learnings from {Kaggle}'s Forecasting Competitions},
+  howpublished = {arXiv preprint arXiv:2009.07701},
+  year      = {2020}
+}
+
+% ---- Transformer Architectures ---------------------------
+
+@inproceedings{kim2024cats,
+  author    = {Kim, Donghao and Wang, Bohyun and others},
+  title     = {Are Self-Attentions Effective for Time Series Forecasting?},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; CATS model}
+}
+
+@inproceedings{chen2024pathformer,
+  author    = {Chen, Peng and Zhang, Yingying and others},
+  title     = {Pathformer: Multi-Scale Transformers with Adaptive Pathways for
+               Time Series Forecasting},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  note      = {ICLR 2024; East China Normal University and Alibaba}
+}
+
+@inproceedings{wang2024timexer,
+  author    = {Wang, Yuxuan and Wu, Haixu and others},
+  title     = {{TimeXer}: Empowering Transformers for Time Series Forecasting
+               with Exogenous Variables},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; Tsinghua University}
+}
+
+% ---- Lightweight & Efficient Architectures ---------------
+
+@inproceedings{han2024sparsetsf,
+  author    = {Han, Lu and Ye, Han-Jia and Zhan, De-Chuan},
+  title     = {{SparseTSF}: Modeling Long-term Time Series Forecasting with 1k Parameters},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2024},
+  note      = {ICML 2024; South China University of Technology}
+}
+
+@inproceedings{lin2024cyclenet,
+  author    = {Lin, Zhiwei and Xiong, Xueer and others},
+  title     = {{CycleNet}: Enhancing Time Series Forecasting through Modeling Periodic Patterns},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; South China University of Technology}
+}
+
+@inproceedings{yi2024filternet,
+  author    = {Yi, Kun and others},
+  title     = {{FilterNet}: Harnessing Frequency Filters for Time Series Forecasting},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; BIT, Tongji, USTC, Oxford}
+}
+
+@inproceedings{han2024softs,
+  author    = {Han, Lu and others},
+  title     = {{SOFTS}: Efficient Multivariate Time Series Forecasting with Series-Core Fusion},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; Nanjing University}
+}
+
+@misc{lin2023segrnn,
+  author    = {Lin, Shengsheng and Lin, Weiwei and Wu, Wentai and others},
+  title     = {{SegRNN}: Segment Recurrent Neural Network for Long-Term Time Series Forecasting},
+  howpublished = {arXiv preprint arXiv:2308.11200},
+  year      = {2023},
+  note      = {South China University of Technology}
+}
+
+@article{garg2024noalstm,
+  author    = {Garg, Pooja and others},
+  title     = {{NOA-LSTM}: An efficient {LSTM} cell architecture for time series forecasting},
+  journal   = {Expert Systems with Applications},
+  year      = {2024},
+  note      = {Charotar University of Science and Technology}
+}
+
+@inproceedings{wang2024timemixer,
+  author    = {Wang, Shiyu and others},
+  title     = {{TimeMixer}: Decomposable Multiscale Mixing for Time Series Forecasting},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2024},
+  note      = {ICLR 2024; Ant Group and Tsinghua University}
+}
+
+% ---- Multi-scale & Graph-based ---------------------------
+
+@inproceedings{jiang2024msgnet,
+  author    = {Jiang, Wenhao and others},
+  title     = {{MSGNet}: Learning Multi-Scale Inter-Series Correlations for
+               Multivariate Time Series Forecasting},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year      = {2024},
+  note      = {Sichuan University}
+}
+
+@misc{zhang2024multistep,
+  author    = {Zhang, Zhicheng and others},
+  title     = {Multi-Step Forecasting via Multi-Task Learning},
+  howpublished = {preprint},
+  year      = {2024}
+}
+
+% ---- Foundation Models -----------------------------------
+
+@inproceedings{das2024timesfm,
+  author    = {Das, Abhimanyu and Kong, Weihao and others},
+  title     = {A decoder-only foundation model for time-series forecasting},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2024},
+  note      = {ICML 2024; Google Research; TimesFM 200M parameters}
+}
+
+@inproceedings{woo2024moirai,
+  author    = {Woo, Gerald and Liu, Chenghao and others},
+  title     = {Unified Training of Universal Time Series Forecasting Transformers},
+  booktitle = {International Conference on Machine Learning},
+  year      = {2024},
+  note      = {ICML 2024; Salesforce AI Research; MOIRAI}
+}
+
+@inproceedings{liu2024unitime,
+  author    = {Liu, Xu and others},
+  title     = {{UniTime}: A Language-Empowered Unified Model for Cross-Domain
+               Time Series Forecasting},
+  booktitle = {Proceedings of the ACM Web Conference},
+  year      = {2024},
+  doi       = {10.1145/3589334.3645434},
+  note      = {WWW 2024; National University of Singapore}
+}
+
+% ---- LLMs for TSF ----------------------------------------
+
+@inproceedings{liu2024gpt4mts,
+  author    = {Liu, Furong and others},
+  title     = {{GPT4MTS}: Prompt-Based Large Language Model for Multimodal
+               Time-Series Forecasting},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  year      = {2024},
+  note      = {AAAI 2024; USC Viterbi School of Engineering}
+}
+
+@inproceedings{tan2024llms,
+  author    = {Tan, Mingtian and Merrill, Mike A. and others},
+  title     = {Are Language Models Actually Useful for Time Series Forecasting?},
+  booktitle = {Advances in Neural Information Processing Systems},
+  year      = {2024},
+  note      = {NeurIPS 2024; University of Virginia and University of Washington}
+}
+
+% ---- Generalization & Distribution Shift -----------------
+
+@inproceedings{du2025shifts,
+  author    = {Du, Junhong and others},
+  title     = {Tackling Time Series Forecasting Generalization via Mitigating Concept Drift},
+  booktitle = {International Conference on Learning Representations},
+  year      = {2025},
+  note      = {ICLR 2025; Georgia Tech}
+}
+
+% ---- Benchmarking ----------------------------------------
+
+@article{qiu2024tfb,
+  author    = {Qiu, Xiangfei and others},
+  title     = {{TFB}: Towards Comprehensive and Fair Benchmarking of Time Series
+               Forecasting Methods},
+  journal   = {Proceedings of the VLDB Endowment},
+  year      = {2024},
+  note      = {PVLDB 2024; East China Normal University}
+}
+
+@misc{shao2024basicts,
+  author    = {Shao, Zezhi and others},
+  title     = {Exploring Progress in Multivariate Time Series Forecasting:
+               Comprehensive Benchmarking and Heterogeneity Analysis},
+  howpublished = {IEEE Transactions on Knowledge and Data Engineering},
+  year      = {2024},
+  note      = {Institute of Computing Technology, CAS; BasicTS+}
+}
+
+% ---- Financial Forecasting -------------------------------
+
+@misc{zhang2024hybrid,
+  author    = {Zhang, Zhe and others},
+  title     = {A hybrid model for financial time-series forecasting based on
+               mixed methodologies},
+  howpublished = {preprint},
+  year      = {2024},
+  note      = {EEMD + ARIMA + Taylor Expansion Forecasting}
+}
+
+@misc{pan2024maml,
+  author    = {Pan, Xin and others},
+  title     = {Adapting to the Unknown: Robust Meta-Learning for Zero-Shot
+               Financial Time Series Forecasting},
+  howpublished = {preprint},
+  year      = {2024},
+  note      = {HKUST Guangzhou; MAML + GMM}
+}
+
+@article{xu2025tftgnn,
+  author    = {Xu, Jiahao and others},
+  title     = {A Novel Hybrid Temporal Fusion Transformer Graph Neural Network
+               Model for Stock Market Prediction},
+  journal   = {AppliedMath},
+  volume    = {5},
+  number    = {4},
+  year      = {2025},
+  doi       = {10.3390/appliedmath5040176}
+}
+
+@inproceedings{zhang2025mlf,
+  author    = {Zhang, Changxin and others},
+  title     = {Multi-period Learning for Financial Time Series Forecasting},
+  booktitle = {Proceedings of the 31st ACM SIGKDD Conference on Knowledge
+               Discovery and Data Mining},
+  year      = {2025},
+  doi       = {10.1145/3690624.3709422},
+  note      = {Fudan University and Ant Group}
+}
+
+@misc{li2024tokenizing,
+  author    = {Li, Chen and others},
+  title     = {Tokenizing Stock Prices for Enhanced Multi-Step Forecast and Prediction},
+  howpublished = {preprint},
+  year      = {2024},
+  note      = {University of Sydney and Beijing Technology and Business University}
+}
+
+@misc{hua2024cmtf,
+  author    = {Hua, Peiyun and others},
+  title     = {Cross-Modal Temporal Fusion for Financial Market Forecasting},
+  howpublished = {preprint},
+  year      = {2024},
+  note      = {University of Bristol; FTSE 100 evaluation}
+}
+
+@inproceedings{fincast2025,
+  author    = {Wu, Xinhua and others},
+  title     = {{FinCast}: A Foundation Model for Financial Time-Series Forecasting},
+  booktitle = {Proceedings of the 34th ACM International Conference on
+               Information and Knowledge Management},
+  year      = {2025},
+  doi       = {10.1145/3746252.3761261},
+  note      = {CIKM 2025; University of Sydney}
+}
+
+@inproceedings{yevchenko2025evolving,
+  author    = {Yevchenko, Vladyslav and others},
+  title     = {Stock market price forecasting using evolving graph neural network},
+  booktitle = {International Scientific Conference on Informatics and Computer Technology},
+  year      = {2025},
+  note      = {Kharkiv National University of Radio Electronics}
+}
+
+% ---- Deep Learning for TSF ------------------------------
+
+@article{lim2021temporal,
+  author    = {Lim, Bryan and Arik, Sercan O. and Loeff, Nicolas and Pfister, Tomas},
+  title     = {Temporal Fusion Transformers for Interpretable Multi-horizon Time
+               Series Forecasting},
+  journal   = {International Journal of Forecasting},
+  volume    = {37},
+  number    = {4},
+  pages     = {1748--1764},
+  year      = {2021},
+  doi       = {10.1016/j.ijforecast.2021.03.012}
+}
+
+@inproceedings{zeng2023transformers,
+  author    = {Zeng, Ailing and Chen, Muxi and Zhang, Lei and Xu, Qiang},
+  title     = {Are Transformers Effective for Time Series Forecasting?},
+  booktitle = {Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume    = {37},
+  number    = {9},
+  pages     = {11121--11128},
+  year      = {2023},
+  doi       = {10.1609/aaai.v37i9.26317}
+}

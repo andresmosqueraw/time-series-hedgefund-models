@@ -1,0 +1,1 @@
+Predecir y_target para todas las filas del test, maximizando el Weighted RMSE Skill Score, bajo la restricción estricta de predicción secuencial (ts_index ≤ t).
