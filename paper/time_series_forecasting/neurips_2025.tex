@@ -20,17 +20,8 @@
 \title{No Free Lunch: Hedge Fund Time Series Forecasting}
 
 \author{%
-  Andrés Felipe Mosquera Hernández \\
-  Universidad de los Andes \\
-  \texttt{a.mosquerah2@uniandes.edu.co} \\
-  \And
-  Josue Briceño Urquijo \\
-  Universidad de los Andes \\
-  \texttt{j.bricenou@uniandes.edu.co} \\
-  \And
-  Michael Javier Patiño Pantoja \\
-  Universidad de los Andes \\
-  \texttt{mj.patino@uniandes.edu.co} \\
+  Andrés Mosquera-Hernández \quad Josue Briceño Urquijo \quad Michael Patiño Pantoja \\
+  Universidad de los Andes, Bogotá, Colombia \\
 }
 
 \begin{document}
@@ -46,29 +37,23 @@
 % 1. INTRODUCCIÓN
 % ============================================================
 
-\section{Introducción}
+\section{Introducción y Justificación}
 
-El pronóstico de series de tiempo es una tarea fundamental en las finanzas cuantitativas, siendo base de la asignación de portafolios, la gestión de riesgo y las estrategias de trading sistemático. Las competencias M4 \citep{makridakis2020m4} y M5 \citep{makridakis2022m5} han demostrado que los métodos modernos especialmente los árboles de gradient boosting \citep{ke2017lightgbm} y las arquitecturas híbridas superan sistemáticamente las líneas base estadísticas clásicas cuando se dispone de datos etiquetados a gran escala. La experiencia de soluciones ganadoras en Kaggle confirma además que las estrategias de validación cruzada temporal y los ensambles de predicciones recursivas y directas son decisivos para lograr una generalización robusta fuera de muestra \citep{m5first2020, kaggleguide}.
+El pronóstico de series de tiempo es fundamental en las finanzas cuantitativas —base de la asignación de portafolios, gestión de riesgo y trading sistemático—. Las competencias M4 \citep{makridakis2020m4} y M5 \citep{makridakis2022m5} evidenciaron que los árboles de gradient boosting \citep{ke2017lightgbm} y las arquitecturas híbridas superan sistemáticamente las líneas base estadísticas clásicas, y las soluciones ganadoras en Kaggle confirman que la validación cruzada temporal y los ensambles recursivo-directos son decisivos para la generalización fuera de muestra \citep{m5first2020, kaggleguide}. En la práctica, las series financieras añaden dificultades propias: ratio señal-ruido extremadamente bajo, no estacionariedad y dinámicas heterogéneas. La competencia \emph{Hedge Fund Time Series Forecasting} \citep{adatacompany2026} agudiza este escenario al prohibir información externa y penalizar severamente la fuga de datos, siendo el reto principal generalizar sin sobreajustarse a un leaderboard público ruidoso.
 
-En la práctica, sin embargo, las series financieras presentan dificultades adicionales: un ratio señal-ruido extremadamente bajo, no estacionariedad y dinámicas heterogéneas. La competencia \emph{Hedge Fund Time Series Forecasting} \citep{adatacompany2026} exige abordar este escenario mediante modelos predictivos sobre datos jerárquicos anonimizados, prohibiendo además el uso de información externa. Debido a una evaluación basada en predicción secuencial estricta, el uso de datos futuros (fuga de datos) es severamente penalizado. El desafío principal consiste en generalizar adecuadamente sin sobreajustarse al leaderboard público, el cual resulta ruidoso.
-
-% -----------------------------------------------------------
-\subsection{Justificación}
-
-El presente trabajo se justifica en tres dimensiones fundamentales. En términos de \textbf{relevancia práctica}, las mejoras marginales en la precisión del pronóstico se traducen en retornos ajustados por riesgo fuertemente superiores de cara a fondos de cobertura reales ($>\$4$ billones USD bajo gestión); por lo tanto, trabajar con estas severas restricciones produce una metodología directamente transferible a entornos de producción bajo causalidad estricta. Respecto al \textbf{vacío de conocimiento}, la mayoría de la investigación actual requiere características interpretables (ej. OHLCV, macroeconomía), mientras que aquí evaluaremos si un aprendizaje puramente guiado por los datos puede recuperar una estructura predictiva sin conocimiento explícito de dominio. Finalmente, sobre la \textbf{pertinencia metodológica}, el alto riesgo de sobreajuste al leaderboard público exige estructurar un escrupuloso framework de validación cruzada temporal reproducible y escalable.
+Este trabajo se justifica en tres dimensiones: (i)~\textbf{relevancia práctica}, pues mejoras marginales en precisión se traducen en retornos ajustados por riesgo superiores en fondos reales ($>\$4$ billones USD bajo gestión), generando metodología directamente transferible a producción; (ii)~\textbf{vacío de conocimiento}, ya que la mayoría de investigaciones requieren features interpretables (ej. OHLCV, macroeconomía), mientras que aquí evaluamos si el aprendizaje puramente guiado por los datos puede recuperar estructura predictiva sin conocimiento explícito de dominio; y (iii)~\textbf{pertinencia metodológica}, pues el alto riesgo de sobreajuste al leaderboard exige un framework de validación cruzada temporal escrupuloso y reproducible.
 
 % -----------------------------------------------------------
 \subsection{Objetivos}
 
-\textbf{Objetivo general.} Desarrollar y evaluar una metodología de machine learning para el pronóstico de series de tiempo financieras anonimizadas bajo restricción estricta de predicción secuencial, maximizando el \emph{weighted RMSE skill score} en el test privado de la competencia Kaggle \emph{Hedge Fund -- Time Series Forecasting}.
+\textbf{Objetivo general.} Desarrollar una metodología de machine learning para el pronóstico de series de tiempo financieras anonimizadas que alcance un \emph{weighted RMSE skill score} superior a 0.30 en el leaderboard público de Kaggle \emph{Hedge Fund - Time Series Forecasting}.
 
 Para cumplir con el propósito principal, se establecen los siguientes \textbf{objetivos específicos}:
 
 \begin{itemize}
-    \item \textbf{Construcción causal:} Diseñar un pipeline de ingeniería de features que calcule todos los estadísticos rolling y de rezago exclusivamente sobre el pasado ($\texttt{ts\_index} \leq t$), con el criterio de éxito de probar matemáticamente y computacionalmente la ausencia de fuga de datos.
-    \item \textbf{Explotación jerárquica:} Analizar la estructura de los identificadores (\texttt{code}, \texttt{sub\_code}, \texttt{sub\_category}, \texttt{horizon}) para identificar patrones y dependencias transversales, apuntando a superar a las líneas base simples que analizan cada grupo y horizonte de manera aislada.
-    \item \textbf{Entrenamiento y validación:} Comparar distintos enfoques de modelado —regresión regularizada, gradient boosting y modelos de secuencias— bajo un esquema de validación cruzada temporal estricta, seleccionando el modelo con mayor estabilidad entre folds locales.
-    \item \textbf{Control de sobreajuste:} Evaluar y descartar el ruido estandarizado del \emph{leaderboard} público midiendo el impacto del \textit{overfitting}, para lograr efectuar la final selección de modelos basados rigurosamente en la estabilidad, en particular, priorizando reducciones en la varianza o desviación estándar entre \emph{folds} locales.
+    \item Implementar un pipeline que garantice la restricción $\texttt{ts\_index} \leq t$ en todos los estadísticos, rezagos e imputaciones, con cero instancias de fuga de datos verificadas computacionalmente sobre los conjuntos de entrenamiento y test.
+    \item Evaluar si incorporar \texttt{code}, \texttt{sub\_code}, \texttt{sub\_category} y \texttt{horizon} como variables de tipo \texttt{category} mejora el \emph{score} local en al menos un 10\% respecto a un modelo sin dichos identificadores, y si la especialización por \texttt{sub\_category} supera a la por horizonte en términos de \emph{score} de validación.
+    \item Comparar al menos dos arquitecturas de redes neuronales (MLP, LSTM) y cuatro variantes de LightGBM bajo validación temporal estricta, seleccionando la configuración con mayor \emph{score} en el leaderboard público.
 \end{itemize}
 
 
@@ -76,58 +61,19 @@ Para cumplir con el propósito principal, se establecen los siguientes \textbf{o
 % 2. ANTECEDENTES Y TRABAJOS RELACIONADOS
 % ============================================================
 
-\section{Antecedentes y Trabajos Relacionados}
-
-La literatura relevante para esta competencia cubre cinco áreas: (i)~arquitecturas de deep learning para pronóstico de series de tiempo (TSF), (ii)~gradient boosting y modelos globales, (iii)~competencias de pronóstico, (iv)~pronóstico financiero, y (v)~generalización bajo cambio de distribución.
-
-% -----------------------------------------------------------
-\subsection{Tres trabajos relevantes}
+\section{Tres trabajos relevantes}
 
 \paragraph{TimeXer: Empowering Transformers for Time Series Forecasting with Exogenous Variables \citep{wang2024timexer}.}
-El paper propone un modelo basado en la arquitectura Transformers pero adaptada específicamente para mejorar la calidad del forecast en series temporales en los que intervienen variables exógenas que influyen en la variable objetivo. El problema que aborda el paper es que muchos modelos actuales son capaces de manejar bien la dependencia temporal en una serie o entre varias variables, pero rara vez manejan ambas propiedades simultáneamente. Esto limita su desempeño en escenarios reales en los que los factores externos influyen en la evolución de la serie temporal. Además, muchas variables exógenas presentan irregularidades en los datos, tales como valores faltantes o diferentes frecuencias, lo que dificulta la integración en los modelos de predicción.
-
-Para superar estos problemas, los autores proponen, TimeXer, que es un modelo que aprovecha la arquitectura tradicional del modelo Transformers pero con la estrategia de representación jerárquica para manejar variables endógenas y exógenas de manera diferente. La serie objetivo se divide en \textit{patches} temporales para procesar la dependencia temporal interna. Las variables exógenas, por su parte, son representadas como tokens en el nivel de variable, facilitando el tratamiento de datos irregulares o de longitud variable. Finalmente, un token global aprendible conecta las dos representaciones, facilitando el influir de la información exógena en las secciones temporales pertinentes a través de mecanismos de \textit{cross-attention}. Con esta estructura, el modelo logra capturar tanto las dependencias temporales dentro de la serie como las relaciones entre las variables exógenas y la serie objetivo.
-
-Los experimentos se han llevado a cabo en varios datasets reales de forecasting, incluyendo datos meteorológicos, de tráfico, eléctricos, y de precios eléctricos. Los experimentos muestran claramente que el modelo supera a varios modelos de referencia, tanto en escenarios univariados como en escenarios multivariados, incluyendo a modelos Transformer, así como a modelos basados en RNN, grafos, etc. Además, el modelo ha mostrado su capacidad para tratar adecuadamente la información exógena, para escalar a datasets de gran magnitud, así como para tratar escenarios complejos como ausencias de datos, o variables de diferentes frecuencias. En resumen, el estudio concluye que el tratamiento adecuado de las variables exógenas a través de esta estructura mejora significativamente la precisión en el forecasting en escenarios reales de series temporales.
+La mayoría de modelos manejan bien la dependencia temporal o las relaciones inter-variable, pero raramente ambas a la vez, y las variables exógenas con irregularidades (datos faltantes, frecuencias distintas) agravan el problema. TimeXer lo resuelve con una representación jerárquica: la serie objetivo se divide en \textit{patches} temporales (dependencia interna) y las variables exógenas se codifican como tokens de variable; un token global aprendible conecta ambas representaciones vía \textit{cross-attention}. Evaluado en datasets meteorológicos, de tráfico y energía, supera a modelos Transformer, RNN y basados en grafos en escenarios univariados y multivariados, confirmando que el tratamiento explícito de exógenas mejora significativamente el forecasting.
 
 \paragraph{Are Self-Attentions Effective for Time Series Forecasting? \citep{kim2024cats}.}
-Este paper presenta CATS (Cross-Attention-only Time Series transformer), una arquitectura de Transformers al prescindir totalmente de las capas de auto-atención. Esta paper presenta que la auto-atención es intrínsecamente ineficiente para el pronóstico de series temporales debido a su invariancia de permutación, lo que dificulta la captura de dependencias secuenciales. En su lugar, CATS utiliza exclusivamente un mecanismo de atención cruzada, donde la serie de tiempo de entrada se codifica como keys y values, mientras que los queries se definen como parámetros aprendibles dependientes del horizonte futuro.
-
-Técnicamente, el modelo demuestra una capacidad superior para capturar tanto la periodicidad de la señal como las perturbaciones (shocks) o cambios bruscos, superando las limitaciones de la auto-atención en el modelado de estos patrones críticos. Además, la arquitectura optimiza el consumo de memoria y la carga computacional mediante una estrategia de compartición de parámetros entre diferentes horizontes y el uso de técnicas de patching. En términos de métricas de rendimiento como el error cuadrático medio (MSE) y el error absoluto medio (MAE), CATS logra establecer un nuevo estado del arte, superando a modelos prominentes como TimeMixer y PatchTST en horizontes de predicción que van desde los 96 hasta los 720 pasos de tiempo.
+CATS (Cross-Attention-only Time Series transformer) elimina por completo la auto-atención, argumentando que su invariancia de permutación impide capturar dependencias secuenciales. En su lugar, la entrada se codifica como keys y values mientras los queries son parámetros aprendibles dependientes del horizonte, con compartición de parámetros entre horizontes y patching para reducir costo computacional. El resultado es un nuevo estado del arte en MSE y MAE, superando a TimeMixer y PatchTST en horizontes de 96 a 720 pasos, con mejor captura de periodicidad y shocks abruptos.
 
 \paragraph{LightGBM \citep{ke2017lightgbm}.}
-Se propone LightGBM con dos innovaciones algorítmicas independientes. GOSS (\textit{Gradient-based One-Side Sampling}) retiene todas las instancias con gradiente elevado, las menos ajustadas por el modelo y submuestrea aleatoriamente las de gradiente bajo, aplicando un factor de amplificación para compensar el sesgo introducido; de este modo, el cómputo de las ganancias de split se aproxima con alta fidelidad usando una fracción de los datos. EFB (\textit{Exclusive Feature Bundling}) identifica grupos de features dispersas que rara vez toman valores no-nulos simultáneamente y las agrupa en un único bundle mediante coloración greedy de grafos, reduciendo la dimensionalidad efectiva sin pérdida de información. En la competencia M5, las soluciones ganadoras basadas en LightGBM con features de rezago sistemáticas superaron a todos los enfoques estadísticos clásicos \citep{makridakis2022m5, m5first2020}.
-
-La limitación estructural del modelo es que trata cada fila como una observación i.i.d.: no incorpora ningún mecanismo de orden temporal ni de causalidad. Toda la información secuencial debe inyectarse externamente como features (rezagos, medias móviles, cuantiles), transfiriendo la responsabilidad de la restricción causal íntegramente al pipeline de preprocesamiento.
-
-En este trabajo, LightGBM actúa como motor de predicción global, pero el diferenciador crítico es la etapa previa de ingeniería de features causales, que construye todos los estadísticos rolling y de rezago bajo la restricción $\texttt{ts\_index} \leq t$. Esta separación de responsabilidades, causalidad en el pipeline, capacidad predictiva en el modelo, es la contribución central de esta metodología.
+LightGBM introduce dos innovaciones: GOSS (\textit{Gradient-based One-Side Sampling}), que retiene instancias de gradiente alto y submuestrea las de gradiente bajo con factor de amplificación, aproximando las ganancias de split con alta fidelidad sobre una fracción de los datos; y EFB (\textit{Exclusive Feature Bundling}), que agrupa features dispersas mutuamente excluyentes mediante coloración greedy de grafos, reduciendo la dimensionalidad sin pérdida de información. Su limitación estructural es tratar cada fila como observación i.i.d.: no hay mecanismo de causalidad interno, por lo que toda la información secuencial debe inyectarse como features externas. En este trabajo esa restricción es precisamente el diferenciador: LightGBM actúa como motor predictivo global mientras que el pipeline construye todos los estadísticos rolling y rezagos bajo la restricción $\texttt{ts\_index} \leq t$, replicando el resultado de M5 donde esta combinación superó a todos los enfoques estadísticos clásicos \citep{makridakis2022m5, m5first2020}.
 
 % ============================================================
-% 3. PLANTEAMIENTO DEL PROBLEMA
-% ============================================================
-
-\section{Planteamiento del Problema. Formalización}
-
-\textbf{Notación.} Asumiendo que $g = (c,s,k,h)$ identifica un grupo-horizonte y $t$ un índice temporal válido, denotemos $\mathbf{x}_{g,t} \in \mathbb{R}^{86}$ al vector de atributos, e $y_{g,t} \in \mathbb{R}$ a la variable objetivo correspondiente.
-
-La \textbf{Restricción de Predicción Secuencial} (estricta) impone que todo modelo $f_\theta$ genere una predicción en base \emph{exclusiva} a eventos ocurridos hasta el índice temporal evaluado. Matemáticamente:
-\[
-  \hat{y}_{g,t} = f_\theta\!\left(\mathcal{D}_{\leq t}\right), \quad \text{donde} \quad
-  \mathcal{D}_{\leq t} = \bigl\{(\mathbf{x}_{g',t'},\ldots) \mid t' \leq t,\;\forall g'\bigr\}
-\]
-donde $\mathcal{D}_{\leq t}$ incluye cálculos como promedios móviles, normalización o cuantiles referenciados a índices $\leq t$. Ignorar esto es un motivo directo de invalidación.
-
-El \textbf{Problema Causal de Pronóstico} entonces consiste en entrenar el modelo $f_\theta$ respetando la causalidad anterior, con la meta de maximizar la siguiente métrica objetivo o \textit{Weighted RMSE Skill Score}:
-\begin{equation}
-  \theta^* = \arg\max_\theta \sqrt{1 - \mathrm{clip}\!\left(
-    \frac{\sum_{i \in \mathcal{I}} w_i(y_i - \hat{y}_i)^2}
-         {\sum_{i \in \mathcal{I}} w_i\,y_i^2},\;0,\;1\right)}
-  \label{eq:score}
-\end{equation}
-evaluado estrictamente fuera de muestra sobre el conjunto privado ($\mathcal{I}_{privado}$), y donde $w_i > 0$ es el peso estipulado y $\mathrm{clip}(r,0,1)$ asegura puntuaciones en un rango acotado $[0, 1]$.
-
-% ============================================================
-% 4. DATOS Y TÉCNICA DE EXTRACCIÓN
+% 3. DATOS Y TÉCNICA DE EXTRACCIÓN
 % ============================================================
 
 \section{Datos empleados}
@@ -157,75 +103,129 @@ Los datos provienen de la competencia Kaggle \emph{Hedge Fund Time Series Foreca
 
 
 % ============================================================
-% 5. METODOLOGÍA
+% 4. METODOLOGÍA
 % ============================================================
 
 \section{Metodología}
 \label{sec:metodologia}
 
-La metodología sigue un pipeline modular de tres etapas: ingeniería de features causales, análisis de estructura jerárquica, y comparación de enfoques de modelado.
+Se desarrollaron ocho experimentos de forma secuencial; los dos primeros exploran arquitecturas de redes neuronales y los seis restantes iteran sobre LightGBM. Todos comparten la restricción causal de que ningún estadístico derivado puede referenciar $\texttt{ts\_index} > t$.
 
 % -----------------------------------------------------------
-\subsection{Ingeniería de features causales}
+\subsection{Experimento MLP: Red neuronal densa con embeddings de entidad}
 
-Todos los estadísticos derivados —medias móviles, desviaciones estándar rolling, cuantiles y rezagos— se computan condicionados a $\texttt{ts\_index} \leq t$, garantizando la ausencia de fuga de datos. Los valores faltantes en las 86 features anónimas se imputan mediante \emph{forward-fill} causal, propagando únicamente observaciones pasadas. La validación de causalidad se realizará mediante pruebas unitarias que verifiquen que ningún cálculo referencia índices $> t$.
-
-% -----------------------------------------------------------
-\subsection{Análisis de estructura jerárquica}
-
-Se explotará la jerarquía definida por los identificadores \texttt{code}, \texttt{sub\_code}, \texttt{sub\_category} y \texttt{horizon} para construir features de agregación entre grupos. El análisis exploratorio identificará dependencias transversales entre series de un mismo \texttt{code} o \texttt{sub\_category}, con el fin de capturar señales que los modelos que tratan cada serie de manera aislada no pueden aprovechar.
+Se trabaja sobre un submuestreo del 25\% de entidades (\texttt{code}, \texttt{sub\_code}), preservando la evolución temporal completa de cada entidad seleccionada. Las cuatro variables categóricas se codifican con \texttt{LabelEncoder} (ajustado sobre train+test) y se representan con capas de embedding de dimensiones $[8, 16, 4, 4]$ para \texttt{code}, \texttt{sub\_code}, \texttt{sub\_category} y \texttt{horizon} respectivamente. Los 86 features numéricos se normalizan con \texttt{StandardScaler} (ajustado solo sobre train) y los valores nulos se imputan con cero. La arquitectura concatena los embeddings, los features numéricos y el $\texttt{ts\_index}$ normalizado, y los pasa por una red MLP con capas $[2048, 1024, 512, 256, 128, 64]$ con \texttt{BatchNorm}, \texttt{ReLU} y \texttt{Dropout}$(0.3)$. Se usa pérdida \texttt{MSELoss}, optimizador \texttt{Adam} (\texttt{lr}=$10^{-3}$, \texttt{weight\_decay}=$10^{-5}$) con clipping de gradientes (\texttt{max\_norm}=1.0) y \texttt{ReduceLROnPlateau}. El corte de validación es el 85\% del \texttt{ts\_index} máximo; el modelo final se reentrena sobre todos los datos con \texttt{CosineAnnealingLR} a 50 épocas y lotes de 4096.
 
 % -----------------------------------------------------------
-\subsection{Enfoques de modelado}
+\subsection{Experimento LSTM: Red recurrente con embeddings de entidad}
 
-Se compararán tres arquitecturas de predicción seleccionadas por su idoneidad en series de tiempo financieras:
-
-\begin{itemize}
-    \item \textbf{Regresión regularizada (Ridge/Lasso):} Línea base interpretable que cuantifica la linealidad residual en las features causales.
-    \item \textbf{Gradient boosting (LightGBM \citep{ke2017lightgbm}):} Motor de predicción global con soporte nativo para pesos de muestra (\texttt{sample\_weight}), necesarios para el cómputo del \emph{Weighted RMSE Skill Score}.
-\end{itemize}
-
-Los dos enfoques se entrenan bajo la misma estrategia de validación cruzada temporal para garantizar comparaciones equitativas.
+Mismo submuestreo del 25\% de entidades y mismo preprocesamiento que el MLP. Los 86 features numéricos se tratan como una secuencia de un solo paso temporal. Cada variable categórica obtiene una capa de embedding de dimensión 86; los cinco tensores (secuencia + 4 embeddings) se concatenan a lo largo del eje de secuencia y se procesan con una capa \texttt{LSTM}(256), seguida de \texttt{Dense}(128, \texttt{relu}) $\to$ \texttt{Dropout}(0.2) $\to$ \texttt{Dense}(64, \texttt{relu}) $\to$ \texttt{Dense}(1). La función de pérdida es \texttt{MAE}, el optimizador \texttt{Adam} (\texttt{lr}=$10^{-5}$) y el scheduler \texttt{ReduceLROnPlateau} (factor=0.5, paciencia=10). El entrenamiento se realiza con hasta 100 épocas, lotes de 256 y datos mezclados en cada época.
 
 % -----------------------------------------------------------
-\subsection{Métricas de evaluación}
+\subsection{Experimento 1: LightGBM multi-horizonte con ingeniería de features causales}
 
-Las siguientes métricas guiarán la selección y el ajuste de modelos a lo largo del proyecto:
+Se entrena un modelo LightGBM independiente por horizonte $h \in \{1,3,10,25\}$, construyendo 183 estadísticos causales organizados en seis grupos:
 
-\begin{itemize}
-    \item \textbf{Weighted RMSE Skill Score} (Ecuación~\ref{eq:score}): métrica primaria de la competencia; se optimiza sobre el conjunto de prueba privado y se estima localmente en cada fold de validación.
-    \item \textbf{RMSE por horizonte:} Desagregación del error cuadrático medio para cada horizonte $h \in \{1, 3, 10, 25\}$, permitiendo identificar los regímenes con mayor dificultad predictiva.
-\end{itemize}
+\begin{enumerate}
+  \item \textbf{Identidad}: dummies de \texttt{sub\_category}; codificación de frecuencia de \texttt{sub\_code}.
+  \item \textbf{Derivadas temporales}: spreads y ratios entre features clave (\texttt{al$-$am}, \texttt{cg$-$by}, \texttt{s$-$t}); medias EWM con spans adaptados al horizonte (3,5 ó 5,7).
+  \item \textbf{Normalización cross-seccional} por \texttt{ts\_index}: volatilidad, z-score, rango y distancia a mínimo/máximo.
+  \item \textbf{Momentum}: diferencia y cambio porcentual; fuerza de tendencia e indicadores de volatilidad.
+  \item \textbf{Estacionalidad}: módulos temporales 7/30/90; senos y cosenos de ciclo anual y de período 100; transformaciones $\log$ y cuadrado de \texttt{ts\_index}; interacciones horizonte$\times$tiempo.
+  \item \textbf{Rolling y rezagos}: medias y desviaciones con ventanas 3/7/14; rezagos 1/3/7/14 de \texttt{feature\_al}; estadísticas históricas de \texttt{y\_target} por \texttt{code}, \texttt{sub\_code} y \texttt{sub\_category} (calculadas solo hasta $\texttt{ts\_index} \leq 3\,500$).
+\end{enumerate}
+
+La regularización se escala al SNR estimado por horizonte: \texttt{num\_leaves} entre 70--90, $\lambda_2$ entre 8--12, \texttt{min\_child\_samples} entre 150--250 y \texttt{early\_stopping} entre 160--200 rondas; con \texttt{feature\_fraction}=0.6 y \texttt{bagging\_fraction}=0.7. Las predicciones finales son el promedio de 5 semillas [42, 2024, 777, 1337, 9999].
 
 % -----------------------------------------------------------
-\subsection{Validación cruzada temporal}
+\subsection{Experimento 3: LightGBM con Polars, suavizado de outliers y selección de features}
 
-Dado que el conjunto de prueba corresponde a un periodo estrictamente posterior al entrenamiento, se emplea una estrategia de \emph{expanding window cross-validation}: cada fold extiende la ventana de entrenamiento hacia el futuro y reserva el bloque temporal inmediatamente siguiente como validación, simulando la predicción fuera de muestra.
+El pipeline se articula en cuatro etapas:
 
+\textbf{(1) Preprocesamiento.} El pipeline se reimplementa en \textbf{Polars} con reducción automática de tipos (Float64$\to$Float32, Int64$\to$Int8/16/32, String$\to$Categorical) para reducir uso de memoria. El \emph{forward-fill} causal combina train y test ordenados por grupo y tiempo, propagando solo features numéricas (nunca \texttt{y\_target} ni \texttt{weight}). Un \textbf{filtro Pseudo-Hampel} (mediana rolling $w=50$, umbral $5\sigma$) suaviza los picos extremos de 12 features ruidosas.
+
+\textbf{(2) Ingeniería de features.} Sobre las originales se añaden: features de signo categórico e interacciones sign$\times$magnitud; combinaciones aritméticas (suma, resta, producto, cociente) entre pares de features clave; estadísticos rolling robustos (mediana, máximo, mínimo, z-score) con ventana 1\,000; acumulados EMA y MACD en spans [10, 30]; y máximos/mínimos por fila entre grupos de features.
+
+\textbf{(3) Selección de features en dos pasadas.} Primero, un modelo de ranking con early stopping en 50 rondas estima la importancia de cada feature. Segundo, se entrena el modelo final solo con las $N_h$ features más importantes por horizonte ($N_1=197$, $N_3=177$, $N_{10}=197$, $N_{25}=217$).
+
+\textbf{(4) Entrenamiento.} Ensemble de 5 semillas [42, 2026, 1232006, 3107, 2709], con los cuatro horizontes entrenados en paralelo con \texttt{joblib} (2 workers).
 
 % -----------------------------------------------------------
-\subsection{Ensemble por mezcla ponderada de rangos}
+\subsection{Experimento 4: Stacking LightGBM + XGBoost + Ridge con pesos por recencia}
 
-Como etapa final del pipeline, las predicciones de $K$ modelos base se combinan mediante un algoritmo de \emph{rank-based blending} con pesos diferenciados por posición. Para cada observación, los modelos se ordenan por magnitud de predicción en dos sentidos (descendente y ascendente), asignando a cada posición de rango $i$ un peso adicional $p_i$ sobre el peso base $w_k$ del modelo:
+Este experimento introduce dos innovaciones respecto a los anteriores.
 
+\textbf{Innovación 1 — Ponderación por recencia.} Los pesos originales de cada observación se amplifican según su posición en el tiempo, dando hasta $40.5\times$ más importancia a las observaciones más recientes:
 \begin{equation}
-  \hat{y}_{\text{ens}} = w_{\downarrow} \cdot B_{\downarrow} + w_{\uparrow} \cdot B_{\uparrow}, \qquad
-  B_{\downarrow} = \sum_{i=1}^{K} \hat{y}_{\sigma_i} \cdot \bigl(w_{\sigma_i} + p_i\bigr)
-  \label{eq:ensemble}
+  \tilde{w}_i = w_i \cdot \bigl(0.5 + 40.0 \cdot \hat{t}_i\bigr), \qquad
+  \hat{t}_i = \frac{t_i - t_{\min}}{t_{\max} - t_{\min} + \varepsilon}
+  \label{eq:recency}
 \end{equation}
 
-donde $\sigma = \arg\mathrm{sort}_{\downarrow}(\hat{\mathbf{y}})$ y $B_{\uparrow}$ se define análogamente con orden ascendente. Los pesos globales son $w_{\downarrow} = 0.70$ y $w_{\uparrow} = 0.30$; los pesos de posición son $\mathbf{p} = [+0.12, +0.06, +0.03, -0.01, -0.04, -0.06, -0.10]$. Este esquema penaliza las predicciones extremas de los modelos de menor peso y amplifica la señal del modelo dominante.
+\textbf{Innovación 2 — Stacking con meta-modelo Ridge.} Se entrenan LightGBM y XGBoost por separado (5 semillas cada uno), y un meta-modelo Ridge ($\alpha=1$, pesos no negativos, 5-Fold sin barajado) aprende qué peso asignar a cada modelo usando sus predicciones fuera de muestra:
+\begin{equation}
+  \hat{y}_{\text{stack}} = w_{\text{LGB}} \cdot \hat{y}_{\text{LGB}} + w_{\text{XGB}} \cdot \hat{y}_{\text{XGB}}, \qquad w_{\text{LGB}}, w_{\text{XGB}} \geq 0
+  \label{eq:ridge_stack}
+\end{equation}
+
+\textbf{Features adicionales.} Se incorporan: wavelets EMA (diferencias entre spans 3, 10, 25 y 50); indicador de régimen de tendencia triple; oscilador estocástico en ventana 25; z-scores de reversión a la media; y desvíos cross-seccionales por \texttt{sub\_code}. Los hiperparámetros principales son: LightGBM con \texttt{lr}=0.005, \texttt{num\_leaves}=1024, $\lambda_2$=10; XGBoost con \texttt{lr}=0.015, \texttt{max\_leaves}=1024, \texttt{max\_depth}=10, early stopping 300.
+
+% -----------------------------------------------------------
+\subsection{Experimento 5: LightGBM minimalista con identificadores jerárquicos como features}
+
+Se adopta un pipeline simplificado. Features: los 86 originales más \texttt{feature\_al}$-$\texttt{feature\_am} y las medias de grupo por (\texttt{code}, \texttt{sub\_code}, \texttt{sub\_category}, \texttt{horizon}) de \texttt{feature\_al} y \texttt{feature\_am}. Los identificadores jerárquicos se pasan como tipo \texttt{category} a LightGBM (\texttt{lr}=0.035, \texttt{n\_estimators}=1202, \texttt{num\_leaves}=64, \texttt{min\_child\_samples}=100, \texttt{feature\_fraction}=0.75, early stopping 100 rondas), permitiéndole aprender efectos fijos por entidad de forma implícita. El umbral de validación es $\texttt{VAL\_THRESHOLD} = 3\,500$.
+
+% -----------------------------------------------------------
+\subsection{Experimento 6: LightGBM minimalista con umbral de validación ajustado y entrenamiento determinista}
+
+Mismo pipeline del Experimento 5 con tres ajustes: (i)~el umbral de validación se desplaza a $\texttt{VAL\_THRESHOLD} = 3\,503$; (ii)~la tasa de aprendizaje se reduce a 0.030 y la fracción de features por árbol a 0.70; y (iii)~se fija \texttt{seed=5} con \texttt{deterministic=True}, \texttt{force\_row\_wise=True} y \texttt{num\_threads=1} para garantizar reproducibilidad bit-a-bit entre ejecuciones.
+
+% -----------------------------------------------------------
+\subsection{Experimento 7: Ensemble dual LightGBM — modelos por horizonte y por sub-categoría con mezcla ponderada por potencia}
+
+Se entrena una segunda dimensión de especialización: 4 modelos por horizonte (Pool A, vista temporal) y 5 modelos por sub-categoría (Pool B, vista estructural), con la misma ingeniería de features del Experimento 5 más \emph{target encoding} de \texttt{sub\_code} (media de \texttt{y\_target} calculada desde $\texttt{ts\_index} \leq 3\,500$) y rezagos \texttt{feature\_al\_lag1}, \texttt{feature\_am\_lag1}. Hiperparámetros: \texttt{lr}=0.030, \texttt{n\_estimators}=1200, \texttt{num\_leaves}=64, \texttt{bagging\_fraction}=0.75, \texttt{bagging\_freq}=5, \texttt{random\_state}=101. Las predicciones de ambos pools se fusionan mediante mezcla ponderada por potencia con $p=2.5$:
+\begin{equation}
+  \hat{y} = \frac{\mathrm{score}_h^{p}}{\mathrm{score}_h^{p} + \mathrm{score}_s^{p}} \cdot \hat{y}_h
+          + \frac{\mathrm{score}_s^{p}}{\mathrm{score}_h^{p} + \mathrm{score}_s^{p}} \cdot \hat{y}_s, \qquad p = 2.5
+  \label{eq:power_blend}
+\end{equation}
 
 % ============================================================
-% 6. EXPERIMENTOS Y RESULTADOS
+% 5. EXPERIMENTOS Y RESULTADOS
 % ============================================================
 
 \section{Experimentos y Resultados}
 
 % -----------------------------------------------------------
-\subsection{Experimento 1: LightGBM multi-horizonte con ingeniería de features causales (Score: 0.2675)}
+\subsection{Experimento MLP: Red neuronal densa con embeddings de entidad}
 
-El conjunto de entrenamiento comprende 5\,337\,414 observaciones ($\texttt{ts\_index} \in [1, 3601]$, 94 columnas) y el test 1\,447\,107 observaciones ($\texttt{ts\_index} \in [3602, 4376]$). La Tabla~\ref{tab:target_stats} evidencia el bajo SNR mediante la alta curtosis del objetivo por horizonte.
+La Tabla~\ref{tab:mlp_results} reporta las pérdidas MSE durante el entrenamiento sobre el 25\,\% de entidades submuestradas (corte de validación $\texttt{ts\_index} > 3\,060$).
+
+\begin{table}[h!]
+  \caption{Pérdidas MSE — Experimento MLP.}
+  \label{tab:mlp_results}
+  \centering
+  \begin{tabular}{lcc}
+    \toprule
+    Fase & MSE & Época \\
+    \midrule
+    Mejor pérdida de validación & 758.1 & 1 \\
+    Pérdida final de entrenamiento (reentrenamiento completo) & 252.4 & 50 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Las 1\,447\,107 predicciones sobre test tienen: media $= -4.07$, desv.~estándar $= 66.4$, mín. $= -2\,773$, máx. $= 3\,993$. Score público: \textbf{0.0634}.
+
+% -----------------------------------------------------------
+\subsection{Experimento LSTM: Red recurrente con embeddings de entidad}
+
+El modelo totalizó 412\,315 parámetros entrenables y se entrenó durante 100 épocas con función de pérdida MAE sobre el 25\,\% de entidades submuestradas (corte de validación $\texttt{ts\_index} > 3\,060$). Score público: \textbf{0.0891}.
+
+% -----------------------------------------------------------
+\subsection{Experimento 1: LightGBM multi-horizonte con ingeniería de features causales}
+
+El conjunto de entrenamiento comprende 5\,337\,414 observaciones ($\texttt{ts\_index} \in [1, 3601]$) y el test 1\,447\,107 ($\texttt{ts\_index} \in [3602, 4376]$). La Tabla~\ref{tab:target_stats} muestra las estadísticas descriptivas del objetivo por horizonte.
 
 \begin{table}[h!]
   \caption{Estadísticas descriptivas de \texttt{y\_target} por horizonte (entrenamiento).}
@@ -243,7 +243,7 @@ El conjunto de entrenamiento comprende 5\,337\,414 observaciones ($\texttt{ts\_i
   \end{tabular}
 \end{table}
 
-Se entrena un modelo LightGBM independiente por horizonte sobre 183 features causales (rezagos, rolling stats, EWM, estacionalidad, interacciones jerárquicas y cross-seccionales), con regularización escalada al SNR del horizonte (\texttt{num\_leaves} 70--90, $\lambda_2$ 8--12) y ensemble de 5 semillas. La Tabla~\ref{tab:horizon_scores} reporta los scores locales; el score público fue \textbf{0.2675}.
+La Tabla~\ref{tab:horizon_scores} reporta los scores de validación local por horizonte. Score público: \textbf{0.2675}.
 
 \begin{table}[h!]
   \caption{Score de validación local por horizonte — Experimento 1 (holdout $\texttt{ts\_index} > 3500$).}
@@ -264,9 +264,9 @@ Se entrena un modelo LightGBM independiente por horizonte sobre 183 features cau
 \end{table}
 
 % -----------------------------------------------------------
-\subsection{Experimento 3: LightGBM con Polars, suavizado de outliers y selección de features (Score: 0.2712)}
+\subsection{Experimento 3: LightGBM con Polars, suavizado de outliers y selección de features}
 
-Tres innovaciones sobre el Experimento 1: (i)~pipeline en \textbf{Polars} con reducción de memoria del 47\% (de $\approx$1\,023\,MB a $\approx$540\,MB por horizonte mediante conversión de tipos), (ii)~\textbf{suavizado Pseudo-Hampel} sobre 12 features ruidosas (mediana rolling $w=50$, umbral $5\sigma$), y (iii)~selección en dos pasadas de las $N_h$ features más importantes por horizonte ($N_1=197$, $N_3=177$, $N_{10}=197$, $N_{25}=217$). La Tabla~\ref{tab:horizon_scores_exp3} reporta los scores locales; el score público fue \textbf{0.2712}.
+La Tabla~\ref{tab:horizon_scores_exp3} reporta los scores locales por horizonte y el número de features seleccionadas. Score público: \textbf{0.2712}.
 
 \begin{table}[h!]
   \caption{Score de validación local por horizonte — Experimento 3.}
@@ -285,20 +285,9 @@ Tres innovaciones sobre el Experimento 1: (i)~pipeline en \textbf{Polars} con re
 \end{table}
 
 % -----------------------------------------------------------
-\subsection{Experimento 4: Stacking LightGBM + XGBoost + Ridge con pesos por recencia (Score: 0.2824)}
+\subsection{Experimento 4: Stacking LightGBM + XGBoost + Ridge con pesos por recencia}
 
-Dos innovaciones estructurales: (i)~\textbf{ponderación por recencia} que amplifica el peso de las observaciones recientes hasta $40.5\times$:
-\begin{equation}
-  \tilde{w}_i = w_i \cdot \bigl(0.5 + 40.0 \cdot \hat{t}_i\bigr), \qquad
-  \hat{t}_i = \frac{t_i - t_{\min}}{t_{\max} - t_{\min} + \varepsilon}
-  \label{eq:recency}
-\end{equation}
-y (ii)~\textbf{meta-modelo Ridge} ($\alpha=1$, pesos no negativos, 5-Fold KFold sin barajado) que combina LightGBM y XGBoost fuera de muestra:
-\begin{equation}
-  \hat{y}_{\text{stack}} = w_{\text{LGB}} \cdot \hat{y}_{\text{LGB}} + w_{\text{XGB}} \cdot \hat{y}_{\text{XGB}}, \qquad w_{\text{LGB}}, w_{\text{XGB}} \geq 0
-  \label{eq:ridge_stack}
-\end{equation}
-La Tabla~\ref{tab:stacking_scores} muestra que LightGBM domina en todos los horizontes (pesos Ridge 64--94\%). Score público: \textbf{0.2824}.
+La Tabla~\ref{tab:stacking_scores} reporta los scores individuales y los pesos Ridge por horizonte. Score público: \textbf{0.2824}.
 
 \begin{table}[h!]
   \caption{Scores locales y pesos Ridge por horizonte — Experimento 4.}
@@ -319,12 +308,12 @@ La Tabla~\ref{tab:stacking_scores} muestra que LightGBM domina en todos los hori
 \end{table}
 
 % -----------------------------------------------------------
-\subsection{Experimento 5: LightGBM minimalista con identificadores jerárquicos como features (Score: 0.3212)}
+\subsection{Experimento 5: LightGBM minimalista con identificadores jerárquicos como features}
 
-El modelo más simple de la serie obtiene el mayor score hasta ese momento (0.3212), superando al stacking del Experimento 4 en $\Delta = +0.0388$. El pipeline usa los 86 features originales más tres derivadas: $\texttt{feature\_al} - \texttt{feature\_am}$ y las medias de grupo por (\texttt{code}, \texttt{sub\_code}, \texttt{sub\_category}, \texttt{horizon}) de \texttt{feature\_al} y \texttt{feature\_am}. Los identificadores jerárquicos se pasan como \texttt{category} directamente a LightGBM (\texttt{lr}=0.035, \texttt{n\_estimators}=1202, \texttt{num\_leaves}=64, early stopping 100 rondas), permitiéndole aprender \textbf{efectos fijos por entidad} implícitos. La Tabla~\ref{tab:exp5_conv} muestra que los modelos convergen en solo 93--133 iteraciones, con el early stopping actuando como regularizador efectivo.
+La Tabla~\ref{tab:exp5_conv} reporta la iteración de mejor desempeño y el RMSE de validación por horizonte (holdout $\texttt{ts\_index} > 3500$). Score público: \textbf{0.3212}.
 
 \begin{table}[h!]
-  \caption{Convergencia por horizonte — Experimento 5. Score público: \textbf{0.3212}.}
+  \caption{Convergencia por horizonte — Experimento 5.}
   \label{tab:exp5_conv}
   \centering
   \begin{tabular}{ccc}
@@ -339,42 +328,31 @@ El modelo más simple de la serie obtiene el mayor score hasta ese momento (0.32
   \end{tabular}
 \end{table}
 
-Los efectos fijos por entidad capturan más señal predictiva que los cientos de estadísticos rolling construidos en los experimentos anteriores.
-
 % -----------------------------------------------------------
-\subsection{Experimento 6: LightGBM minimalista con umbral de validación ajustado y entrenamiento determinista (Score: 0.3377)}
+\subsection{Experimento 6: LightGBM minimalista con umbral de validación ajustado y entrenamiento determinista}
 
-Mismo pipeline del Experimento 5 con tres ajustes quirúrgicos que elevan el score de 0.3212 a \textbf{0.3377} ($\Delta = +0.0165$), sintetizados en la Tabla~\ref{tab:diff_exp5_exp6}.
+La Tabla~\ref{tab:exp6_conv} reporta la convergencia por horizonte (holdout $\texttt{ts\_index} > 3503$). Score público: \textbf{0.3377}.
 
 \begin{table}[h!]
-  \caption{Diferencias entre Experimento 5 y Experimento 6.}
-  \label{tab:diff_exp5_exp6}
+  \caption{Convergencia por horizonte — Experimento 6.}
+  \label{tab:exp6_conv}
   \centering
-  \begin{tabular}{lcc}
+  \begin{tabular}{ccc}
     \toprule
-    Parámetro & Experimento 5 & Experimento 6 \\
+    Horizonte & Mejor iteración & RMSE validación \\
     \midrule
-    \texttt{VAL\_THRESHOLD}          & 3\,500 & \textbf{3\,503} \\
-    \texttt{learning\_rate}          & 0.035  & \textbf{0.030}  \\
-    \texttt{feature\_fraction}       & 0.75   & \textbf{0.70}   \\
-    Semilla / \texttt{deterministic} & por defecto / \texttt{False} & \textbf{5 / \texttt{True}} \\
-    Score público                    & 0.3212 & \textbf{0.3377} \\
+    1  &  53 & 0.001142 \\
+    3  & 118 & 0.001825 \\
+    10 & 541 & 0.002653 \\
+    25 & 433 & 0.002843 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-El desplazamiento de \texttt{VAL\_THRESHOLD} en solo 3 observaciones produce $+0.0165$ en el score público, evidenciando la alta sensibilidad del pipeline al punto de corte en series de baja SNR. La combinación \texttt{seed=5}, \texttt{deterministic=True}, \texttt{num\_threads=1} garantiza reproducibilidad bit-a-bit entre ejecuciones.
-
 % -----------------------------------------------------------
-\subsection{Experimento 7: Ensemble dual LightGBM — modelos por horizonte y por sub-categoría con mezcla ponderada por potencia (Score: 0.3429)}
+\subsection{Experimento 7: Ensemble dual LightGBM — modelos por horizonte y por sub-categoría con mezcla ponderada por potencia}
 
-Se añade una segunda dimensión de especialización: 4 modelos por horizonte (Pool A, vista temporal) y 5 modelos por sub-categoría (Pool B, vista estructural), fusionados con mezcla ponderada por potencia:
-\begin{equation}
-  \hat{y} = \frac{\text{score}_h^{p}}{\text{score}_h^{p} + \text{score}_s^{p}} \cdot \hat{y}_h
-          + \frac{\text{score}_s^{p}}{\text{score}_h^{p} + \text{score}_s^{p}} \cdot \hat{y}_s, \qquad p = 2.5
-  \label{eq:power_blend}
-\end{equation}
-La Tabla~\ref{tab:exp7_scores} muestra que los modelos de sub-categoría superan sistemáticamente a los de horizonte corto, resultando en un peso promedio de \textbf{67.1\%} para el Pool B y 32.9\% para el Pool A. Las 1\,447\,107 predicciones tienen media $-0.869$, std $7.440$, mínimo $-158.05$ y máximo $86.75$. Score público: \textbf{0.3429}.
+La Tabla~\ref{tab:exp7_scores} reporta los scores de validación local de cada modelo. El peso promedio resultante es 67.1\% para el Pool\,B (sub-categoría) y 32.9\% para el Pool\,A (horizonte). Las 1\,447\,107 predicciones finales tienen media $-0.869$, desv.~estándar $7.440$, mínimo $-158.05$ y máximo $86.75$. Score público: \textbf{0.3429}.
 
 \begin{table}[h!]
   \caption{Scores de validación local por modelo — Experimento 7.}
@@ -402,54 +380,45 @@ La Tabla~\ref{tab:exp7_scores} muestra que los modelos de sub-categoría superan
   \end{tabular}
 \end{table}
 
-La Tabla~\ref{tab:resumen_final_7} resume los scores públicos de los 7 experimentos. Los tres mejores corresponden a arquitecturas minimalistas con identificadores jerárquicos como features.
+La Tabla~\ref{tab:resumen_final} resume los scores públicos de todos los experimentos con submission en el leaderboard.
 
 \begin{table}[h!]
-  \caption{Ranking final de scores públicos en el leaderboard.}
-  \label{tab:resumen_final_7}
+  \caption{Ranking de scores públicos en el leaderboard.}
+  \label{tab:resumen_final}
   \centering
-  \begin{tabular}{clcc}
+  \begin{tabular}{clc}
     \toprule
-    Exp. & Descripción & Score público & $\Delta$ vs. Exp.~2 \\
+    Exp. & Descripción & Score público \\
     \midrule
-    2 & Ensemble rank-blending (7 modelos)                          & 0.2639 & --- \\
-    1 & LightGBM, 183 features, 5 semillas                          & 0.2675 & $+0.0036$ \\
-    3 & LightGBM + Polars + Hampel + interacciones                  & 0.2712 & $+0.0073$ \\
-    4 & LGB + XGB + Ridge stacking, recency weighting               & 0.2824 & $+0.0185$ \\
-    5 & LightGBM minimalista, IDs jerárquicos, thr=3500             & 0.3212 & $+0.0573$ \\
-    6 & LightGBM minimalista, IDs jerárquicos, thr=3503             & 0.3377 & $+0.0738$ \\
-    \textbf{7} & \textbf{Dual ensemble: 4 horizonte + 5 sub-cat, mezcla $p^{2.5}$} & \textbf{0.3429} & $\mathbf{+0.0790}$ \\
+    MLP  & Red densa con embeddings, 25\% entidades       & 0.0634 \\
+    LSTM & Red recurrente con embeddings, 25\% entidades  & 0.0891 \\
+    1    & LightGBM, 183 features, 5 semillas              & 0.2675 \\
+    3    & LightGBM + Polars + Hampel + interacciones      & 0.2712 \\
+    4    & LGB + XGB + Ridge stacking, recency weighting   & 0.2824 \\
+    5    & LightGBM minimalista, IDs jerárquicos, thr=3500 & 0.3212 \\
+    6    & LightGBM minimalista, IDs jerárquicos, thr=3503 & 0.3377 \\
+    \textbf{7} & \textbf{Dual ensemble: horizonte + sub-cat, mezcla $p^{2.5}$} & \textbf{0.3429} \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% -----------------------------------------------------------
-\subsection{Experimento 2: Ensemble por mezcla ponderada de rangos (Score: 0.2639)}
+% ============================================================
+% 6. DISCUSIÓN
+% ============================================================
 
-Se combinaron $K=7$ submissions previas —scores individuales entre 0.2606 y 0.2638— mediante el algoritmo de \emph{rank-based blending} descrito en la Sección~\ref{sec:metodologia} (Ecuación~\ref{eq:ensemble}). La Tabla~\ref{tab:ensemble} detalla el score y el peso base de cada modelo.
+\section{Discusión}
 
-\begin{table}[h!]
-  \caption{Modelos base del ensemble — Experimento 2.}
-  \label{tab:ensemble}
-  \centering
-  \begin{tabular}{lcc}
-    \toprule
-    Modelo & Score público & Peso base $w_k$ \\
-    \midrule
-    \texttt{submission0.2638}          & 0.2638 & 0.65 \\
-    \texttt{submissionhedgefund0.2637} & 0.2637 & 0.14 \\
-    \texttt{submissionhedgefund0.2636} & 0.2636 & 0.08 \\
-    \texttt{submissionhedgefund0.2635} & 0.2635 & 0.06 \\
-    \texttt{submissionhedgefund0.2620} & 0.2620 & 0.04 \\
-    \texttt{submissionhedgefund0.2608} & 0.2608 & 0.02 \\
-    \texttt{submissionhedgefund0.2606} & 0.2606 & 0.01 \\
-    \midrule
-    \textbf{Ensemble} & \textbf{0.2639} & --- \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\paragraph{Redes neuronales vs.\ LightGBM.}
+Los experimentos MLP (0.0634) y LSTM (0.0891) fallaron frente a cualquier variante de LightGBM. El MLP alcanzó su mejor pérdida de validación en la primera época (MSE = 758.1) y no volvió a mejorar; sus predicciones de test presentaron una desviación estándar de 66.4, muy por encima de la del objetivo real ($\approx 35$), confirmando que el modelo no aprendió la distribución subyacente. Tres factores explican el fracaso: el submuestreo al 25\% de entidades reduce la señal disponible, la curtosis extrema del objetivo ($>500$ en $h=1$) domina la función MSE con outliers, y la ausencia de ingeniería de features temporales causales priva a la red de las transformaciones que sí aprovecha LightGBM. El primer experimento LightGBM (Exp.~1, 0.2675) superó a las redes en $3\times$--$4\times$ usando el conjunto completo, confirmando el patrón observado en M5 \citep{makridakis2022m5}: en datos tabulares de bajo SNR, LightGBM explota cientos de features mejor que las arquitecturas secuenciales.
 
-El ensemble alcanzó \textbf{0.2639} ($\Delta = +0.0001$ sobre el mejor individual), validando que la mezcla de rangos bidireccional aporta señal incremental incluso en SNR extremadamente bajo.
+\paragraph{La complejidad no escala; la identidad sí.}
+Los pipelines más elaborados de Exp.~3 (Polars, Hampel, selección en dos pasadas) y Exp.~4 (stacking LGB+XGB+Ridge con recencia) aportaron mejoras modestas sobre Exp.~1 ($+0.0037$ y $+0.0149$ respectivamente). El stacking llegó a perjudicar en $h=1$ (0.08109 vs.\ 0.08947 del LGB solo) y $h=25$ (0.27791 vs.\ 0.29130), con XGBoost contribuyendo apenas 5.7\% de peso en $h=10$. El salto cualitativo llegó con Exp.~5 ($+0.0388$, de 0.2824 a 0.3212) mediante un pipeline radicalmente más simple: pasar \texttt{code}, \texttt{sub\_code}, \texttt{sub\_category} y \texttt{horizon} como variables de tipo \texttt{category}, permitiendo a LightGBM aprender efectos fijos implícitos por entidad. Los modelos convergieron en apenas 93--133 iteraciones, evidenciando que la señal clave era la identidad de cada serie, no la ingeniería de features temporales.
+
+\paragraph{Sensibilidad al esquema de validación y especialización por sub-categoría.}
+El Exp.~6 desplazó el umbral de validación en solo 3 observaciones ($3\,500 \to 3\,503$) y obtuvo $+0.0165$ en el score público; la convergencia para $h=10$ pasó de 107 a 541 iteraciones y para $h=25$ de 117 a 433. Esta sensibilidad a un cambio del 0.08\% en el eje temporal refleja el riesgo de sobreajuste al leaderboard cuando el SNR es muy bajo. El Exp.~7 añadió cinco modelos por sub-categoría (Pool B, promedio 0.2541) frente a cuatro por horizonte (Pool A, promedio 0.1950), resultando en un peso promedio de 67.1\% para Pool B. La mejora incremental fue modesta ($+0.0052$), lo que indica que la señal de \texttt{sub\_category} ya estaba implícitamente codificada en los identificadores categóricos de Exp.~6.
+
+\paragraph{Patrón de dificultad por horizonte.}
+En todos los experimentos LightGBM, $h=1$ es el horizonte más difícil (score $\approx 0.07$--$0.09$) y $h=25$ el más fácil ($\approx 0.28$--$0.33$), patrón que se corresponde directamente con la curtosis del objetivo (528.5 en $h=1$ frente a 141.5 en $h=25$). Las series de corto plazo están dominadas por ruido de alta frecuencia, mientras las de largo plazo exhiben componentes estructurales más estables y recuperables.
 
 % ============================================================
 % REFERENCIAS
